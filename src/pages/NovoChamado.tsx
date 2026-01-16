@@ -1,0 +1,289 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; // Lógica do antigo
+import { Monitor, Wifi, Printer, Server, ArrowLeft, CheckCircle, Camera, MapPin, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import api from "@/services/api";
+import { LocationMap } from "@/components/LocationMap";
+
+// Interface para pegar o ID do token (Igual ao código antigo)
+interface TokenPayload {
+    id: number;
+}
+
+// --- CONTAINER VISUAL (Visual Novo) ---
+const Container = ({ children }: { children: React.ReactNode }) => (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+        <div className="bg-white w-full max-w-5xl rounded-3xl shadow-xl overflow-hidden border border-gray-200 mx-auto">
+            {children}
+        </div>
+    </div>
+);
+
+export function NovoChamado() {
+    const navigate = useNavigate();
+    const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+
+    // Estados
+    const [categoria, setCategoria] = useState("");
+    const [titulo, setTitulo] = useState("");
+    const [descricao, setDescricao] = useState("");
+    const [prioridade, setPrioridade] = useState("BAIXA"); // Padrão do antigo
+    const [imagens, setImagens] = useState<File[]>([]);
+    const [localizacao, setLocalizacao] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+
+    const categorias = [
+        { id: "HARDWARE", label: "Hardware & Computadores", icon: <Monitor className="w-6 h-6" />, desc: "Notebook não liga, tela azul, lentidão." },
+        { id: "REDE", label: "Rede & Internet", icon: <Wifi className="w-6 h-6" />, desc: "Wi-Fi caiu, sem acesso ao sistema." },
+        { id: "IMPRESSORA", label: "Impressoras & Scanners", icon: <Printer className="w-6 h-6" />, desc: "Papel atolado, falha na impressão." },
+        { id: "SERVIDOR", label: "Servidores & Cloud", icon: <Server className="w-6 h-6" />, desc: "Acesso a pastas, backup, firewall." },
+    ];
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) setImagens((prev) => [...prev, ...Array.from(e.target.files!)]);
+    };
+
+    const removeImage = (index: number) => {
+        setImagens((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    // --- LÓGICA DE ENVIO DO CÓDIGO ANTIGO ADAPTADA ---
+    async function handleSubmit() {
+        if (!categoria) return alert("Selecione uma categoria.");
+        if (!titulo.trim()) return alert("Preencha o título.");
+        if (!descricao.trim()) return alert("Preencha a descrição.");
+
+        // 1. Pegar Token e Decodificar (IGUAL AO ANTIGO)
+        const token = localStorage.getItem('helpti_token');
+        if (!token) {
+            alert("Erro de autenticação. Faça login novamente.");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const decoded = jwtDecode<TokenPayload>(token);
+            const clienteId = decoded.id; // ID extraído corretamente
+
+            // 2. Montar JSON com a estrutura do ANTIGO
+            const dadosChamado = {
+                titulo: titulo,
+                descricao: descricao, // ATENÇÃO: Era 'observacoes' no novo, mudei para 'descricao' igual o antigo
+                prioridade: prioridade,
+                cliente: { id: clienteId }, // ID vindo do token
+                empresa: { id: 1 },         // Obrigatório (estava faltando no novo)
+
+                // Campos novos (Se o backend ignorar, tudo bem. Se aceitar, melhor ainda)
+                categoria: categoria,
+                status: "ABERTO",
+                latitude: localizacao.lat,
+                longitude: localizacao.lng
+            };
+
+            const formData = new FormData();
+
+            // JSON Stringify no campo "chamado"
+            formData.append("chamado", JSON.stringify(dadosChamado));
+
+            // Anexos (Loop para suportar múltiplos, mas compatível com a lógica de multipart)
+            if (imagens.length > 0) {
+                imagens.forEach(file => {
+                    formData.append("anexos", file);
+                });
+            } else {
+                // Se seu backend exigir que o campo "anexos" exista mesmo vazio, descomente abaixo:
+                // formData.append("anexos", new Blob(), ''); 
+            }
+
+            // 3. URL CORRETA (/api/chamados)
+            await api.post('/api/chamados', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            setStep(3); // Sucesso
+        } catch (error) {
+            console.error("Erro ao abrir chamado", error);
+            alert("Erro ao enviar. Tente novamente.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const catSelecionada = categorias.find(c => c.id === categoria);
+
+    // --- TELA 1 (VISUAL NOVO) ---
+    if (step === 1) {
+        return (
+            <Container>
+                <div className="px-10 py-8 border-b border-gray-100 flex items-center gap-4 bg-white">
+                    <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full h-10 w-10 text-gray-500 hover:bg-gray-100">
+                        <ArrowLeft size={22} />
+                    </Button>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Novo Chamado</h1>
+                        <p className="text-gray-500 text-sm">Selecione a categoria do problema</p>
+                    </div>
+                </div>
+                <div className="p-10 bg-gray-50/30">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {categorias.map((cat) => (
+                            <button
+                                key={cat.id}
+                                onClick={() => { setCategoria(cat.id); setStep(2); }}
+                                className="group bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-500 transition-all text-left flex items-start gap-4"
+                            >
+                                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    {cat.icon}
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg text-gray-900">{cat.label}</h3>
+                                    <p className="text-gray-500 text-sm mt-1">{cat.desc}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </Container>
+        );
+    }
+
+    // --- TELA 2 (VISUAL NOVO) ---
+    if (step === 2) {
+        return (
+            <Container>
+                <div className="bg-gray-900 px-10 py-6 flex items-center gap-4 text-white">
+                    <button onClick={() => setStep(1)} className="hover:text-blue-300 transition-colors p-2 bg-white/10 rounded-full">
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                        <span className="text-blue-400 text-xs font-bold uppercase tracking-wider">Categoria</span>
+                        <h2 className="text-xl font-bold flex items-center gap-2 mt-0.5">
+                            {catSelecionada?.label}
+                        </h2>
+                    </div>
+                </div>
+
+                <div className="p-10 space-y-8">
+                    <div className="grid gap-6">
+                        <div>
+                            <label className="text-sm font-bold text-gray-700 block mb-2">Título Resumido</label>
+                            <Input
+                                value={titulo}
+                                onChange={e => setTitulo(e.target.value)}
+                                placeholder="Ex: Computador não liga..."
+                                className="h-12 text-base"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm font-bold text-gray-700 block mb-2">Descrição Detalhada</label>
+                            <textarea
+                                value={descricao}
+                                onChange={e => setDescricao(e.target.value)}
+                                placeholder="Descreva o problema aqui..."
+                                className="w-full min-h-[120px] p-4 rounded-xl border border-gray-200 outline-none resize-y text-sm bg-gray-50 focus:bg-white transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-gray-100">
+                        {/* MAPA */}
+                        <div className="space-y-3">
+                            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                <MapPin size={18} className="text-blue-600" /> Localização
+                            </label>
+                            <div className="h-64 w-full rounded-xl overflow-hidden border border-gray-200 bg-gray-100 relative z-0">
+                                <LocationMap onLocationSelect={(lat, lng) => setLocalizacao({ lat, lng })} />
+                            </div>
+                            <p className="text-xs text-gray-500">* Arraste o pino para ajustar.</p>
+                        </div>
+
+                        {/* FOTOS */}
+                        <div className="space-y-3">
+                            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                <Camera size={18} className="text-blue-600" /> Fotos (Opcional)
+                            </label>
+                            <div className="flex gap-3 flex-wrap content-start">
+                                <label className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all text-gray-400 hover:text-blue-500">
+                                    <span className="text-2xl font-light">+</span>
+                                    <span className="text-xs mt-1">Add</span>
+                                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
+                                </label>
+                                {imagens.map((img, idx) => (
+                                    <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden shadow-sm border border-gray-200 group">
+                                        <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" />
+                                        <button onClick={() => removeImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all">
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-gray-100 space-y-6">
+                        <div>
+                            <label className="text-sm font-bold text-gray-700 block mb-3">Urgência</label>
+                            <div className="grid grid-cols-3 gap-4">
+                                {["BAIXA", "MEDIA", "ALTA"].map(prio => (
+                                    <button
+                                        key={prio}
+                                        onClick={() => setPrioridade(prio)}
+                                        className={`h-12 rounded-xl font-bold text-xs tracking-wider border transition-all ${prioridade === prio
+                                                ? prio === "ALTA" ? "bg-red-500 border-red-500 text-white"
+                                                    : prio === "MEDIA" ? "bg-orange-500 border-orange-500 text-white"
+                                                        : "bg-green-500 border-green-500 text-white"
+                                                : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                                            }`}
+                                    >
+                                        {prio}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <Button size="lg" className="w-full h-14 text-base font-bold rounded-xl bg-gray-900 hover:bg-black shadow-lg" onClick={handleSubmit} disabled={loading}>
+                            {loading ? "Enviando..." : "ABRIR CHAMADO"}
+                        </Button>
+                    </div>
+                </div>
+            </Container>
+        );
+    }
+    // --- TELA 3 (SUCESSO) ---
+    return (
+        <Container>
+            {/* Wrapper que ocupa toda a largura e centraliza o conteúdo */}
+            <div className="w-full py-20 px-6 flex flex-col items-center justify-center text-center">
+
+                {/* Bloco de conteúdo com largura controlada */}
+                <div className="max-w-md w-full flex flex-col items-center space-y-8">
+
+                    {/* Ícone com animação suave */}
+                    <div className="w-24 h-24 bg-green-50 text-green-600 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                        <CheckCircle size={48} strokeWidth={3} />
+                    </div>
+
+                    <div className="space-y-2">
+                        <h2 className="text-3xl font-bold text-gray-900">Chamado Aberto!</h2>
+                        <p className="text-gray-500 text-lg leading-relaxed">
+                            Sua solicitação foi enviada aos técnicos.<br />
+                            Acompanhe o status pelo painel.
+                        </p>
+                    </div>
+
+                    <Button
+                        className="w-full h-12 text-base font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md transition-all hover:scale-[1.02]"
+                        onClick={() => navigate('/cliente/dashboard')}
+                    >
+                        Voltar ao Painel
+                    </Button>
+
+                </div>
+            </div>
+        </Container>
+    );
+} export default NovoChamado;
