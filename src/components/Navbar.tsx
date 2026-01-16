@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LogOut, Menu, LayoutDashboard, Users, UserCircle, FolderOpen, DollarSign } from "lucide-react";
@@ -15,9 +15,15 @@ const navLinks = [
 
 export function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const isActive = (href: string) => location.pathname === href;
+
+  const handleLogout = () => {
+    localStorage.removeItem("helpti_token");
+    navigate("/login");
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-card border-b border-border shadow-soft">
@@ -58,10 +64,7 @@ export function Navbar() {
             <Button
               variant="ghost"
               className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              onClick={() => {
-                /*logout*/
-                console.log("Logout");
-              }}
+              onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 mr-2" />
               Sair
@@ -116,8 +119,7 @@ export function Navbar() {
                     className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     onClick={() => {
                       setIsOpen(false);
-                      // TODO: Implementar logout
-                      console.log("Logout");
+                      handleLogout();
                     }}
                   >
                     <LogOut className="h-5 w-5 mr-3" />
