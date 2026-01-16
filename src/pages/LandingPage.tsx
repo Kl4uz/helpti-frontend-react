@@ -1,6 +1,6 @@
 import { MessageCircle, Phone, Headphones, Shield, Monitor, Settings, Users, Zap, CheckCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logoHelpTI from "@/assets/logo-helpti.jpg";
+import logoHelpTI from "@/assets/logo-helpti-bg.png";
 
 const WHATSAPP_NUMBER = "5511999999999"; // Substituir pelo número real
 const WHATSAPP_MESSAGE = "Olá! Gostaria de falar com um técnico de TI.";
@@ -68,7 +68,11 @@ const LandingPage = () => {
       {/* Header/Nav */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <img src={logoHelpTI} alt="HelpTI Logo" className="h-10 w-auto" />
+          <div className="flex items-center justify-between gap-3">
+            <img src={logoHelpTI} alt="HelpTI Logo" className="h-10 w-auto" />
+            <p className="font-bold text-primary text-4xl">HelpTI</p>
+
+          </div>
           <Button asChild className="bg-secondary hover:bg-secondary/90 text-secondary-foreground">
             <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
               <MessageCircle className="mr-2 h-4 w-4" />
@@ -83,7 +87,7 @@ const LandingPage = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center animate-fade-in">
             <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              Suporte Técnico Especializado
+              Palmas - TO
             </span>
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
               Problemas com seu computador?
@@ -100,9 +104,9 @@ const LandingPage = () => {
                 size="lg" 
                 className="text-lg px-8 py-6 animate-pulse-glow"
               >
-                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+                <a href="/login" rel="noopener noreferrer">
                   <MessageCircle className="mr-2 h-5 w-5" />
-                  Falar com um técnico agora
+                  Começar Agora
                 </a>
               </Button>
               <Button 
@@ -256,14 +260,14 @@ const LandingPage = () => {
                 size="lg"
                 className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
               >
-                <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
+                <a href="/login" target="" rel="noopener noreferrer">
                   <MessageCircle className="mr-2 h-5 w-5" />
-                  WhatsApp
+                  Começar Agora
                 </a>
               </Button>
               <Button 
                 asChild 
-                variant="outline" 
+                variant="ghost" 
                 size="lg"
                 className="border-background/30 text-background hover:bg-background/10"
               >
