@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Chamado } from "@/types/ticket";
 
 // Mock data para desenvolvimento - será substituído pela integração real
@@ -32,17 +33,18 @@ const mockChamados: Chamado[] = [
 ];
 
 // Placeholder API - será substituído pela integração real com backend
-const api = {
-  get: async (url: string) => {
-    // Simula delay de rede
-    await new Promise((resolve) => setTimeout(resolve, 800));
 
-    if (url === "/api/chamados") {
-      return { data: mockChamados };
+const api = axios.create({
+    baseURL: "http://localhost:8082"
+});
+
+api.interceptors.request.use(config => {
+    const token = localStorage.getItem('helpti_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
-
-    return { data: [] };
-  },
-};
+    
+    return config;
+});
 
 export default api;
