@@ -5,17 +5,58 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import logoHelpTI from "@/assets/logo-helpti.jpg";
 import loginHero from "@/assets/login-hero.jpg";
+import {jwtDecode} from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+import  api  from "@/services/api";
+
+interface JwtPayload {
+  sub: string;
+  id: number;
+  role: string[];
+}
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [erroLogin, setErroLogin] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implementar autenticação
-    console.log("Login attempt:", { email, rememberMe });
+    setErroLogin(false);
+    setLoading(true);
+
+    try {
+      const response = await api.post('/api/login', {
+        email,
+        senha: password 
+      });
+
+      const token = response.data.token;
+      localStorage.setItem('helpti_token', token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      const decoded = jwtDecode<JwtPayload>(token);
+      const roles = decoded.roles;
+
+      if (roles.includes("ROLE_ADMIN")) {
+        navigate('/admin/dashboard');
+      } else if (roles.includes("ROLE_TECNICO")) {
+        navigate('/tecnico/dashboard');
+      } else {
+        navigate('/cliente/dashboard');
+      }
+      } catch (error) {
+        console.error("Erro no login:", error);
+        setErroLogin(true);
+        alert("Erro ao fazer login. Verifique suas credenciais e tente novamente.");
+      } finally {
+        setLoading(false);
+      }
   };
 
   return (

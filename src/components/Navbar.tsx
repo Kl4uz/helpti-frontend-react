@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LogOut, Menu, LayoutDashboard, Users, UserCircle, FolderOpen, DollarSign } from "lucide-react";
-import logoHelpTI from "@/assets/logo-helpti.jpg";
+import logoHelpTI from "@/assets/h-logo-removebg-preview.png";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -59,7 +59,7 @@ export function Navbar() {
               variant="ghost"
               className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
               onClick={() => {
-                // TODO: Implementar logout
+                /*logout*/
                 console.log("Logout");
               }}
             >
