@@ -7,7 +7,9 @@ import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NovoChamado from "./pages/NovoChamado";
+import TecnicoDashboard from "./pages/TecnicoDashboard";
 import NotFound from "./pages/NotFound";
+import { ChamadoDetail } from "./pages/ChamadoDetail";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +23,9 @@ const App = () => (
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cliente/dashboard" element={<Dashboard />} />
-          <Route path="cliente/novo-chamado" element={ <NovoChamado />}/>
+          <Route path="/cliente/novo-chamado" element={ <NovoChamado />}/>
+          <Route path="/tecnico/dashboard" element={ <TecnicoDashboard/>}/>
+          <Route path="/chamado/:id" element={ <ChamadoDetail/>}/>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
