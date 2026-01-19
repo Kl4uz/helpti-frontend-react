@@ -139,7 +139,7 @@ export default function Dashboard() {
                     <TicketListItem
                       key={chamado.id}
                       chamado={chamado}
-                      onClick={() => navigate(`/chamados/${chamado.id}`)}
+                      onClick={() => navigate(`/chamado/${chamado.id}`)}
                     />
                   ))}
                 </div>
