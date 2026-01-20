@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import logoHelpTI from "@/assets/logo-helpti.jpg";
+import logoHelpTI from "@/assets/logo-helpti-bg.png";
 import loginHero from "@/assets/login-hero.jpg";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
