@@ -5,14 +5,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import logoHelpTI from "@/assets/logo-helpti.jpg";
 import loginHero from "@/assets/login-hero.jpg";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-import  api  from "@/services/api";
+import api from "@/services/api";
 
+// 🛠️ AJUSTE 1: A interface deve bater com o nome do campo no Token (geralmente plural "roles")
 interface JwtPayload {
   sub: string;
   id: number;
-  role: string[];
+  roles: string[]; // Alterado de 'role' para 'roles' para bater com o código abaixo
 }
 
 const Login = () => {
@@ -31,17 +32,27 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/api/login', {
+      // 🛠️ AJUSTE 2: Rota corrigida para bater com o SecurityConfig (/api/auth/login)
+      const response = await api.post('/api/auth/login', {
         email,
         senha: password 
       });
 
       const token = response.data.token;
+      
+      // Salva no Storage
       localStorage.setItem('helpti_token', token);
+      
+      // Define o token padrão para as próximas requisições do Axios
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
+      // Decodifica o token
       const decoded = jwtDecode<JwtPayload>(token);
-      const roles = decoded.roles;
+      
+      // Fallback de segurança: Se roles vier undefined, usa array vazio para não quebrar
+      const roles = decoded.roles || [];
+
+      console.log("Login Sucesso. Roles:", roles); // Log para debug
 
       if (roles.includes("ROLE_ADMIN")) {
         navigate('/admin/dashboard');
@@ -50,13 +61,14 @@ const Login = () => {
       } else {
         navigate('/cliente/dashboard');
       }
-      } catch (error) {
-        console.error("Erro no login:", error);
-        setErroLogin(true);
-        alert("Erro ao fazer login. Verifique suas credenciais e tente novamente.");
-      } finally {
-        setLoading(false);
-      }
+
+    } catch (error) {
+      console.error("Erro no login:", error);
+      setErroLogin(true);
+      // Opcional: Mostrar mensagem específica se for 403 ou 401
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -103,6 +115,13 @@ const Login = () => {
               Acesse sua conta para continuar
             </p>
           </div>
+
+          {/* Mensagem de Erro (Adicionada visualmente) */}
+          {erroLogin && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm text-center">
+              Erro ao fazer login. Verifique email e senha.
+            </div>
+          )}
 
           {/* Formulário */}
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -186,8 +205,8 @@ const Login = () => {
             </div>
 
             {/* Botão de Login */}
-            <Button type="submit" size="lg" className="w-full">
-              Entrar
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
 
