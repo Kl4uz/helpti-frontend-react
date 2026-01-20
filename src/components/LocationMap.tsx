@@ -71,13 +71,15 @@ export function LocationMap({ onLocationSelect }: LocationMapProps) {
         // z-0 e isolate garantem que o mapa não fique por cima de outros elementos
         <div className="w-full h-full z-0 isolate relative">
             <MapContainer 
-                center={defaultCenter}
+                {...{ center: defaultCenter } as any}
                 zoom={15} 
                 style={{ height: "100%", width: "100%", borderRadius: "0.75rem" }}
             >
                 <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; OpenStreetMap'
+                    {...{ 
+                        url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        attribution: '&copy; OpenStreetMap' 
+                    } as any}
                 />
                 
                 {/* Controladores */}
