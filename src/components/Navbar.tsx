@@ -4,21 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LogOut, Menu, LayoutDashboard, Users, UserCircle, FolderOpen, DollarSign } from "lucide-react";
 import logoHelpTI from "@/assets/h-logo-removebg-preview.png";
+import { getNavLinksByRole } from "@/config/NavLinksConf";
+import { useAuth } from "@/contexts/AuthContext";
 
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/tecnicos", label: "Técnicos", icon: Users },
-  { href: "/clientes", label: "Clientes", icon: UserCircle },
-  { href: "/categorias", label: "Categorias", icon: FolderOpen },
-  { href: "/financeiro", label: "Financeiro", icon: DollarSign },
-];
 
 export function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-
+  const {user, logout} = useAuth();
+  
   const isActive = (href: string) => location.pathname === href;
+  
+  const navLinks = getNavLinksByRole(user?.role || null)
 
   const handleLogout = () => {
     localStorage.removeItem("helpti_token");
