@@ -24,7 +24,7 @@ const clienteSchema = z.object({
   email: z.string().email("Email inválido").max(255),
   cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, "CPF inválido (formato: 000.000.000-00)"),
   telefone: z.string().min(10, "Telefone inválido").max(15),
-  empresaId: z.string().min(1, "Selecione a empresa"),
+  empresaId: z.string().optional(),
   senha: z.string().min(6, "Senha deve ter pelo menos 6 caracteres").max(50),
   confirmarSenha: z.string(),
 }).refine((data) => data.senha === data.confirmarSenha, {
@@ -97,14 +97,18 @@ export default function FormCliente() {
   const onSubmit = async (data: ClienteFormData) => {
     try {
       setLoading(true);
-      
+      // Se empresaId não for fornecido, vincula à matriz (id=1)
+      const empresaIdFinal = data.empresaId && data.empresaId.length > 0 ? Number(data.empresaId) : 1;
+      const empresaDoClienteFinal =
+        empresas.find((e) => e.id === empresaIdFinal)?.nomeFantasia || "Matriz";
+
       await api.post("/api/clientes", {
         nome: data.nome.trim(),
         email: data.email.trim(),
         cpf: data.cpf,
         telefone: data.telefone.replace(/\D/g, ""),
-        empresaId: Number(data.empresaId),
-        empresaDoCliente: empresaSelecionada?.nomeFantasia || "",
+        empresaId: empresaIdFinal,
+        empresaDoCliente: empresaDoClienteFinal,
         perfil: 2, // Cliente final
         senha: data.senha,
       });
@@ -116,9 +120,24 @@ export default function FormCliente() {
 
       navigate("/login");
     } catch (error: any) {
+      console.error("Erro ao cadastrar:", error);
+      
+      // Tratamento de erros específicos
+      let mensagemErro = "Tente novamente mais tarde.";
+      
+      if (error.response?.status === 409) {
+        mensagemErro = "Email ou CPF já cadastrados no sistema.";
+      } else if (error.response?.status === 400) {
+        mensagemErro = error.response?.data?.message || "Dados inválidos. Verifique os campos.";
+      } else if (error.response?.status === 500) {
+        mensagemErro = "Erro no servidor. Por favor, contate o administrador.";
+      } else if (error.response?.data?.message) {
+        mensagemErro = error.response.data.message;
+      }
+      
       toast({
         title: "Erro ao cadastrar",
-        description: error.response?.data?.message || "Tente novamente mais tarde.",
+        description: mensagemErro,
         variant: "destructive",
       });
     } finally {
@@ -220,11 +239,11 @@ export default function FormCliente() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="empresaId">Empresa</Label>
+                {/* <Label htmlFor="empresaId">Empresa (opcional)</Label>
                 <Select onValueChange={handleEmpresaChange}>
                   <SelectTrigger>
                     <SelectValue 
-                      placeholder={loadingEmpresas ? "Carregando..." : "Selecione sua empresa..."} 
+                      placeholder={loadingEmpresas ? "Carregando..." : "Selecione uma empresa"} 
                     />
                   </SelectTrigger>
                   <SelectContent>
@@ -235,9 +254,7 @@ export default function FormCliente() {
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.empresaId && (
-                  <p className="text-sm text-destructive">{errors.empresaId.message}</p>
-                )}
+                Não exibe erro se empresaId for opcional */}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
