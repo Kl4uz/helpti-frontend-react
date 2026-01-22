@@ -9,11 +9,10 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import api from "@/services/api";
 
-// 🛠️ AJUSTE 1: A interface deve bater com o nome do campo no Token (geralmente plural "roles")
 interface JwtPayload {
   sub: string;
   id: number;
-  roles: string[]; // Alterado de 'role' para 'roles' para bater com o código abaixo
+  roles: string[]; 
 }
 
 const Login = () => {
@@ -32,8 +31,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // 🛠️ AJUSTE 2: Rota corrigida para bater com o SecurityConfig (/api/auth/login)
-      const response = await api.post('/api/auth/login', {
+      const response = await api.post('/api/login', {
         email,
         senha: password 
       });
@@ -54,9 +52,9 @@ const Login = () => {
 
       console.log("Login Sucesso. Roles:", roles); // Log para debug
 
-      if (roles.includes("ROLE_ADMIN")) {
+      if (roles.includes("ADMIN")) {
         navigate('/admin/dashboard');
-      } else if (roles.includes("ROLE_TECNICO")) {
+      } else if (roles.includes("TECNICO")) {
         navigate('/tecnico/dashboard');
       } else {
         navigate('/cliente/dashboard');
@@ -215,7 +213,7 @@ const Login = () => {
             <p className="text-muted-foreground">
               Não tem uma conta?{" "}
               <a
-                href="#"
+                href="/cadastro"
                 className="text-primary hover:text-primary/80 font-semibold transition-colors"
               >
                 Criar conta
