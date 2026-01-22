@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
 import { 
   ArrowLeft, 
   UserCog, 
@@ -15,6 +14,7 @@ import {
   Calendar
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -113,6 +113,7 @@ const getPrioridadeConfig = (prioridade: string) => {
 export function ChamadoDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [chamado, setChamado] = useState<Chamado | null>(null);
   const [novaNota, setNovaNota] = useState("");
@@ -128,6 +129,15 @@ export function ChamadoDetail() {
   const [solucao, setSolucao] = useState("");
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
   const [subCategoriaSelecionada, setSubCategoriaSelecionada] = useState("");
+
+  // Verifica se o usuário tem permissão para mudar o proprietário
+  const canChangeOwner = () => {
+    if (!user) return false;
+    // Apenas ADMIN e TECNICO podem mudar o proprietário
+    if (user.role === "ADMIN" || user.role === "EMPRESA"){
+      return true;
+    }
+  };
 
   const loadDados = async () => {
     try {
@@ -159,17 +169,14 @@ export function ChamadoDetail() {
 
   const handleEnviarNota = async () => {
     if (!novaNota.trim()) return;
+    if (!user) return;
+
     try {
       setEnviandoNota(true);
-      const token = localStorage.getItem("helpti_token");
-      const decoded: { sub: string; roles: string[] } = jwtDecode(token!);
-      const userRole = decoded.roles[0];
-      const userEmail = decoded.sub;
-
       await api.post(`/api/chamados/${id}/notas`, {
         texto: novaNota,
-        autorNome: userEmail,
-        autorTipo: userRole.replace("ROLE_", ""),
+        autorNome: user.nome,
+        autorTipo: user.role,
       });
 
       setNovaNota("");
@@ -245,7 +252,6 @@ export function ChamadoDetail() {
   return (
     <div className="min-h-screen bg-muted/30">
       <Navbar />
-
       <main className="container mx-auto px-4 py-6 max-w-7xl animate-fade-in">
         {/* Header do Chamado */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
@@ -289,17 +295,21 @@ export function ChamadoDetail() {
                     Voltar
                   </Button>
 
-                  <div className="h-6 w-px bg-border hidden sm:block" />
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setMostrarTransferir(!mostrarTransferir)}
-                    className="text-primary hover:text-primary/80"
-                  >
-                    <UserCog className="h-4 w-4 mr-2" />
-                    Mudar Proprietário
-                  </Button>
+                  {/* Botão de Mudança de Proprietário - Apenas para ADMIN e TECNICO */}
+                  {canChangeOwner() == true && (
+                    <>
+                      <div className="h-6 w-px bg-border hidden sm:block" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setMostrarTransferir(!mostrarTransferir)}
+                        className="text-primary hover:text-primary/80"
+                      >
+                        <UserCog className="h-4 w-4 mr-2" />
+                        Mudar Proprietário
+                      </Button>
+                    </>
+                  )}
 
                   {chamado.status !== "FECHADO" && (
                     <>
@@ -318,7 +328,7 @@ export function ChamadoDetail() {
                 </div>
 
                 {/* Dropdown de Transferência */}
-                {mostrarTransferir && (
+                {mostrarTransferir && canChangeOwner() && (
                   <div className="mt-4 pt-4 border-t border-border">
                     <Label className="text-sm text-muted-foreground mb-2 block">
                       Selecione o novo técnico:
