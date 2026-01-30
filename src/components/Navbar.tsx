@@ -19,7 +19,7 @@ export function Navbar() {
   const navLinks = getNavLinksByRole(user?.role || null)
 
   const handleLogout = () => {
-    localStorage.removeItem("helpti_token");
+    logout();
     navigate("/login");
   };
 

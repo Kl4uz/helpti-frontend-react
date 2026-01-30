@@ -8,6 +8,7 @@ import loginHero from "@/assets/login-hero.jpg";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import api from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface JwtPayload {
   sub: string;
@@ -22,8 +23,8 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [erroLogin, setErroLogin] = useState(false);
-
   const navigate = useNavigate();
+  const { checkAuth } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +52,9 @@ const Login = () => {
       const roles = decoded.roles || [];
 
       console.log("Login Sucesso. Roles:", roles); // Log para debug
+
+      // Re-hidratar o contexto de autenticação com o novo usuário
+      await checkAuth();
 
       if (roles.includes("ADMIN")) {
         navigate('/admin/dashboard');

@@ -41,14 +41,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Mapeia roles customizadas
       let defRole = "CLIENTE";
       if (decoded.roles.length > 0) {
-        if(decoded.roles[1]=="ROLE_0"){
-          defRole = "MATRIZ";
+        if(decoded.roles=="ROLE_ADMIN"){
+          defRole = "ADMIN";
         }
-        if(decoded.roles[1]=="ROLE_1"){
+        if(decoded.roles=="ROLE_PRESTADORA"){
           defRole = "EMPRESA";
         }
-        if(decoded.roles[1]=="ROLE_2"){
+        if(decoded.roles=="ROLE_CLIENTE"){
           defRole = "CLIENTE";
+        }
+        if(decoded.roles == "ROLE_GESTOR"){
+          defRole = "GESTOR";
         }
       }
       const userData: User = {
@@ -80,32 +83,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const decodedToken: any = jwtDecode(token);
       // Mapeia roles customizadas
-      let role = "CLIENTE";
-      if (decodedToken.roles && Array.isArray(decodedToken.roles) && decodedToken.roles.length > 0) {
-        switch (decodedToken.roles[1]) {
-          case "ROLE_0":
-            role = "MATRIZ";
-            break;
-          case "ROLE_1":
-            role = "EMPRESA";
-            break;
-          case "ROLE_2":
-            role = "CLIENTE";
-            break;
-          default:
-            role = "CLIENTE";
-        }
-      }
+
       const user: User = {
         id: decodedToken.id || decodedToken.sub,
         nome: userData.nome || decodedToken.nome,
         email: userData.email || decodedToken.email,
-        role: role,
+        role: userData.role || decodedToken.role,
         avatar: userData.avatar,
       };
 
       setUser(user);
       setIsAuthenticated(true);
+
+      await checkAuth();
+      
     } catch (error) {
       console.error("Erro ao fazer login:", error);
       throw error;

@@ -29,6 +29,7 @@ export default function Dashboard() {
     loadChamados();
   }, []);
 
+  const token = localStorage.getItem("helpti_token");
   const totalAbertos = chamados.filter((c) => c.status === "ABERTO").length;
   const totalEmAndamento = chamados.filter((c) => c.status === "EM_ATENDIMENTO").length;
   const totalFechados = chamados.filter((c) => c.status === "FECHADO").length;
@@ -42,7 +43,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background flex flex-col w-full">
       <Navbar />
-
+      <p>{token}</p>
       {/* Header Section */}
       <div className="bg-card shadow-soft w-full border-b border-border">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
