@@ -13,7 +13,9 @@ import { useAuth } from "@/contexts/AuthContext";
 interface JwtPayload {
   sub: string;
   id: number;
-  roles: string[]; 
+  roles: string[];
+  empresaId?: number;
+  empresaNome?: string;
 }
 
 const Login = () => {
@@ -37,21 +39,32 @@ const Login = () => {
         senha: password 
       });
 
-      const token = response.data.token;
+      const { token, email: userEmail, perfil, nome, id, empresaId, empresaNome } = response.data;
       
       // Salva no Storage
       localStorage.setItem('helpti_token', token);
       
+      // Salva dados adicionais do usuário no localStorage
+      // Se empresaId não fornecido (ex: ADMIN), usa matriz (id=1)
+      const empresaIdFinal = empresaId || 1;
+      localStorage.setItem('helpti_empresaId', empresaIdFinal.toString());
+      
+      if (empresaNome) {
+        localStorage.setItem('helpti_empresaNome', empresaNome);
+      } else {
+        localStorage.setItem('helpti_empresaNome', 'Matriz');
+      }
+      
       // Define o token padrão para as próximas requisições do Axios
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      // Decodifica o token
+      // Decodifica o token (para validação e campos adicionais)
       const decoded = jwtDecode<JwtPayload>(token);
       
       // Fallback de segurança: Se roles vier undefined, usa array vazio para não quebrar
       const roles = decoded.roles || [];
 
-      console.log("Login Sucesso. Roles:", roles); // Log para debug
+      console.log("Login Sucesso. Perfil:", perfil, "EmpresaId:", empresaIdFinal); // Log para debug
 
       // Re-hidratar o contexto de autenticação com o novo usuário
       await checkAuth();

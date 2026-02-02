@@ -1,4 +1,4 @@
-export type UserRole = "ADMIN" | "CLIENTE" | "TECNICO";
+export type UserRole = "ADMIN" | "CLIENTE" | "TECNICO" | "GESTOR" | "EMPRESA";
 
 export interface User {
   id: string;
@@ -6,6 +6,8 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
+  empresaId?: number;
+  empresaNome?: string;
 }
 
 export interface AuthContextType {

@@ -32,15 +32,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Verificar se o token expirou
       if (decoded.exp && decoded.exp * 1000 < Date.now()) {
         localStorage.removeItem("helpti_token");
+        localStorage.removeItem("helpti_empresaId");
+        localStorage.removeItem("helpti_empresaNome");
         setIsAuthenticated(false);
         setUser(null);
         setIsLoading(false);
         return;
       }
 
+      // Recupera empresaId do localStorage ou token
+      const empresaIdStorage = localStorage.getItem("helpti_empresaId");
+      const empresaNomeStorage = localStorage.getItem("helpti_empresaNome");
+
       // Mapeia roles customizadas
       let defRole = "CLIENTE";
-      if (decoded.roles.length > 0) {
+      if (decoded.roles && decoded.roles.length > 0) {
         if(decoded.roles=="ROLE_ADMIN"){
           defRole = "ADMIN";
         }
@@ -54,12 +60,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           defRole = "GESTOR";
         }
       }
+      
       const userData: User = {
         id: decoded.id || decoded.sub,
         nome: decoded.nome || decoded.name,
         email: decoded.email,
         role: defRole,
         avatar: decoded.avatar,
+        empresaId: decoded.empresaId || (empresaIdStorage ? Number(empresaIdStorage) : undefined),
+        empresaNome: decoded.empresaNome || empresaNomeStorage || undefined,
       };
 
       setUser(userData);
@@ -105,6 +114,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("helpti_token");
+    localStorage.removeItem("helpti_empresaId");
+    localStorage.removeItem("helpti_empresaNome");
     setUser(null);
     setIsAuthenticated(false);
   };

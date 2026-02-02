@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import api from "@/services/api";
 import { LocationMap } from "@/components/LocationMap";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Interface para pegar o ID do token (Igual ao código antigo)
+// Interface para pegar o ID do token
 interface TokenPayload {
     id: number;
+    empresaId?: number; // ID da empresa associada ao cliente
+    empresaNome?: string;
 }
 
 // --- CONTAINER VISUAL (Visual Novo) ---
@@ -33,7 +36,7 @@ export function NovoChamado() {
     const [prioridade, setPrioridade] = useState("BAIXA"); // Padrão do antigo
     const [imagens, setImagens] = useState<File[]>([]);
     const [localizacao, setLocalizacao] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
-
+    const { checkAuth } = useAuth();
     const categorias = [
         { id: "HARDWARE", label: "Hardware & Computadores", icon: <Monitor className="w-6 h-6" />, desc: "Notebook não liga, tela azul, lentidão." },
         { id: "REDE", label: "Rede & Internet", icon: <Wifi className="w-6 h-6" />, desc: "Wi-Fi caiu, sem acesso ao sistema." },
@@ -49,6 +52,8 @@ export function NovoChamado() {
         setImagens((prev) => prev.filter((_, i) => i !== index));
     };
 
+    const token = localStorage.getItem("helpti_token");
+
     // --- LÓGICA DE ENVIO DO CÓDIGO ANTIGO ADAPTADA ---
     async function handleSubmit() {
         if (!categoria) return alert("Selecione uma categoria.");
@@ -56,17 +61,18 @@ export function NovoChamado() {
         if (!descricao.trim()) return alert("Preencha a descrição.");
 
         // 1. Pegar Token e Decodificar (IGUAL AO ANTIGO)
-        const token = localStorage.getItem('helpti_token');
-        if (!token) {
-            alert("Erro de autenticação. Faça login novamente.");
-            return;
-        }
-
+        await checkAuth(); // Garante que o contexto está atualizado
         setLoading(true);
 
         try {
             const decoded = jwtDecode<TokenPayload>(token);
             const clienteId = decoded.id; // ID extraído corretamente
+            
+            // Tenta obter o empresaId do token, depois do localStorage, caso contrário usa 1 (matriz)
+            const empresaIdStorage = localStorage.getItem('helpti_empresaId');
+            const empresaId = decoded.empresaId || (empresaIdStorage ? Number(empresaIdStorage) : 1);
+            
+            console.log('Criando chamado - ClienteId:', clienteId, 'EmpresaId:', empresaId);
 
             // 2. Montar JSON com a estrutura do ANTIGO
             const dadosChamado = {
@@ -74,7 +80,7 @@ export function NovoChamado() {
                 descricao: descricao, // ATENÇÃO: Era 'observacoes' no novo, mudei para 'descricao' igual o antigo
                 prioridade: prioridade,
                 cliente: { id: clienteId }, // ID vindo do token
-                empresa: { id: 1 },         // Obrigatório (estava faltando no novo)
+                empresa: { id: empresaId }, // ID da empresa do cliente (do token ou fallback para matriz)
 
                 // Campos novos (Se o backend ignorar, tudo bem. Se aceitar, melhor ainda)
                 categoria: categoria,
