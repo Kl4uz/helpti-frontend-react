@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           defRole = "ADMIN";
         }
         if(decoded.roles=="ROLE_PRESTADORA"){
-          defRole = "EMPRESA";
+          defRole = "PRESTADORA";
         }
         if(decoded.roles=="ROLE_CLIENTE"){
           defRole = "CLIENTE";

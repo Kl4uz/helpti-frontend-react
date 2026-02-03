@@ -4,7 +4,7 @@ export interface NavLink {
   href: string;
   label: string;
   icon: any;
-  roles: ("ADMIN" | "GESTOR" | "CLIENTE" | "GESTOR" | "PRESTADORA")[];
+  roles: ("ADMIN" | "GESTOR" | "CLIENTE" | "PRESTADORA")[];
 }
 
 export const NAV_LINKS: NavLink[] = [
@@ -12,7 +12,7 @@ export const NAV_LINKS: NavLink[] = [
     href: "/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["ADMIN", "GESTOR", "CLIENTE"],
+    roles: ["ADMIN", "GESTOR", "CLIENTE", "PRESTADORA"],
   },
   {
     href: "/tecnicos",
@@ -36,7 +36,7 @@ export const NAV_LINKS: NavLink[] = [
     href: "/financeiro",
     label: "Financeiro",
     icon: DollarSign,
-    roles: ["ADMIN"],
+    roles: ["ADMIN", "PRESTADORA"],
   },
   {
     href: "/meus-chamados",
@@ -48,7 +48,7 @@ export const NAV_LINKS: NavLink[] = [
     href: "/configuracoes",
     label: "Configurações",
     icon: Settings,
-    roles: ["ADMIN", "GESTOR", "CLIENTE"],
+    roles: ["ADMIN", "GESTOR", "CLIENTE", "PRESTADORA"],
   },
 ];
 
